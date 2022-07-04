@@ -1,7 +1,9 @@
 import { MailerService } from "@nestjs-modules/mailer";
-import { Process, Processor } from "@nestjs/bull";
+import { OnQueueCompleted, Process, Processor } from "@nestjs/bull";
 import { Job } from "bull";
 import { CreateUserDTO } from "src/create-user/create-user.dto";
+import { createBullBoard } from "bull-board";
+import { BullAdapter } from "bull-board/bullAdapter";
 
 @Processor('sendMail-queue')
 export class SendMailConsumerService {
@@ -20,5 +22,10 @@ export class SendMailConsumerService {
             subject: "Seja bem-vindo(a)!",
             text: `Olá ${data.name}, seu cadastro foi realizado com sucesso. Seja bem-vindo(a)!`,
         });
+    }
+
+    @OnQueueCompleted()
+    async onCompleted(job: Job<CreateUserDTO>) {
+        console.log(`The queue with ${job.data.name} was completed`);
     }
 }
