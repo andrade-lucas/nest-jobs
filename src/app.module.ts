@@ -3,6 +3,8 @@ import { Module } from '@nestjs/common';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { CreateUserController } from './create-user/create-user.controller';
 import { ConfigModule } from '@nestjs/config';
+import { SendMailProducerService } from './jobs/sendMail-producer.service';
+import { SendMailConsumerService } from './jobs/sendMail-consumer.service';
 
 @Module({
   imports: [
@@ -10,7 +12,9 @@ import { ConfigModule } from '@nestjs/config';
     BullModule.forRoot({
       redis: {
         host: process.env.REDIS_HOST,
-        port: Number(process.env.REDIS_PORT)
+        port: Number(process.env.REDIS_PORT),
+        username: process.env.REDIS_USER,
+        password: process.env.REDIS_PASS
       }
     }),
     MailerModule.forRoot({
@@ -22,9 +26,12 @@ import { ConfigModule } from '@nestjs/config';
           pass: process.env.MAIL_PASS
         }
       }
+    }),
+    BullModule.registerQueue({
+      name: 'sendMail-queue'
     })
   ],
   controllers: [CreateUserController],
-  providers: [],
+  providers: [SendMailProducerService, SendMailConsumerService],
 })
 export class AppModule { }
